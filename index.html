@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kursanmeldung — Kameraeinführung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --papier:    #E4E3DD;
+    --papier-2:  #D8D7D0;
+    --tinte:     #14161A;
+    --silber:    #8A8E94;
+    --safelight: #B8342B;
+    --linie:     rgba(20, 22, 26, 0.16);
+  }
+
+  * { box-sizing: border-box; }
+
+  .anmeldung {
+    font-family: 'Archivo', system-ui, sans-serif;
+    background: var(--papier);
+    color: var(--tinte);
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 2.5rem 2rem 2.25rem;
+    line-height: 1.5;
+  }
+
+  /* ---------- Kopf ---------- */
+  .kurs-titel {
+    font-size: 1.55rem;
+    font-weight: 800;
+    letter-spacing: -0.022em;
+    margin: 0 0 0.35rem;
+  }
+  .kurs-ort {
+    font-size: 0.875rem;
+    color: var(--silber);
+    margin: 0 0 2rem;
+  }
+
+  /* ---------- Sucher-Anzeige: freie Plätze ---------- */
+  .sucher {
+    position: relative;
+    padding: 1.75rem 1rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  /* Die vier Ecken eines Kamerasuchers */
+  .sucher::before,
+  .sucher::after,
+  .sucher > .ecke-ul,
+  .sucher > .ecke-or {
+    content: '';
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--tinte);
+  }
+  .sucher::before   { top: 0; left: 0;  border-right: none; border-bottom: none; }
+  .sucher::after    { bottom: 0; right: 0; border-left: none; border-top: none; }
+  .sucher .ecke-ul  { top: 0; right: 0; border-left: none; border-bottom: none; }
+  .sucher .ecke-or  { bottom: 0; left: 0; border-right: none; border-top: none; }
+
+  .sucher.ausgebucht::before,
+  .sucher.ausgebucht::after,
+  .sucher.ausgebucht .ecke-ul,
+  .sucher.ausgebucht .ecke-or { border-color: var(--safelight); }
+
+  .zahl {
+    font-size: 3.4rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    display: block;
+  }
+  .sucher.ausgebucht .zahl { color: var(--safelight); font-size: 1.6rem; padding: 0.85rem 0; }
+  .zahl-text {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--silber);
+    margin-top: 0.45rem;
+  }
+  .sucher.laedt .zahl { color: var(--silber); }
+
+  /* ---------- Formular ---------- */
+  .feld { margin-bottom: 1.1rem; }
+  .feld label {
+    display: block;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 0.35rem;
+  }
+  .feld input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--tinte);
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--linie);
+    padding: 0.5rem 0;
+    transition: border-color 0.15s;
+  }
+  .feld input:focus {
+    outline: none;
+    border-bottom-color: var(--tinte);
+  }
+  .feld input:focus-visible {
+    outline: 2px solid var(--tinte);
+    outline-offset: 3px;
+  }
+
+  .knopf {
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--papier);
+    background: var(--tinte);
+    border: none;
+    padding: 0.85rem 1rem;
+    margin-top: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .knopf:hover:not(:disabled) { opacity: 0.85; }
+  .knopf:disabled { opacity: 0.4; cursor: not-allowed; }
+  .knopf:focus-visible { outline: 2px solid var(--tinte); outline-offset: 3px; }
+
+  /* ---------- Meldungen ---------- */
+  .meldung {
+    font-size: 0.9rem;
+    padding: 0.85rem 1rem;
+    margin-top: 1.1rem;
+    border-left: 3px solid var(--tinte);
+    background: var(--papier-2);
+  }
+  .meldung.fehler { border-left-color: var(--safelight); color: var(--safelight); }
+  .meldung[hidden] { display: none; }
+
+  .bestaetigung { text-align: left; }
+  .bestaetigung h2 {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0 0 0.5rem;
+  }
+  .bestaetigung p { margin: 0 0 0.5rem; font-size: 0.95rem; }
+  .bestaetigung p:last-child { margin-bottom: 0; color: var(--silber); font-size: 0.875rem; }
+
+  .hinweis-warteliste {
+    font-size: 0.875rem;
+    color: var(--safelight);
+    margin-bottom: 1.25rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="anmeldung">
+
+  <h1 class="kurs-titel" id="titel">Kameraeinführung</h1>
+  <p class="kurs-ort">F+F Schule für Kunst und Design, Zürich</p>
+
+  <div class="sucher laedt" id="sucher">
+    <span class="ecke-ul"></span>
+    <span class="ecke-or"></span>
+    <span class="zahl" id="zahl">–</span>
+    <span class="zahl-text" id="zahl-text">Plätze werden geladen</span>
+  </div>
+
+  <div id="formular-bereich">
+    <p class="hinweis-warteliste" id="hinweis-warteliste" hidden>
+      Der Kurs ist voll. Du kannst dich auf die Warteliste setzen lassen.
+    </p>
+
+    <div class="feld">
+      <label for="name">Name</label>
+      <input type="text" id="name" autocomplete="name" required>
+    </div>
+
+    <div class="feld">
+      <label for="email">E-Mail</label>
+      <input type="email" id="email" autocomplete="email" required>
+    </div>
+
+    <button class="knopf" id="senden" disabled>Anmelden</button>
+
+    <div class="meldung fehler" id="fehler" hidden></div>
+  </div>
+
+  <div class="meldung bestaetigung" id="bestaetigung" hidden></div>
+
+</div>
+
+<script>
+// ============================================================
+//  HIER DEINE APPS-SCRIPT-URL EINTRAGEN
+// ============================================================
+const SCRIPT_URL = 'HIER_DEINE_WEB_APP_URL_EINSETZEN';
+
+const el = {
+  sucher:     document.getElementById('sucher'),
+  zahl:       document.getElementById('zahl'),
+  zahlText:   document.getElementById('zahl-text'),
+  name:       document.getElementById('name'),
+  email:      document.getElementById('email'),
+  senden:     document.getElementById('senden'),
+  fehler:     document.getElementById('fehler'),
+  bestaetigung: document.getElementById('bestaetigung'),
+  formular:   document.getElementById('formular-bereich'),
+  hinweisWL:  document.getElementById('hinweis-warteliste'),
+  titel:      document.getElementById('titel')
+};
+
+let stand = null;
+
+// ---------- Stand beim Laden abfragen ----------
+async function ladeStand() {
+  try {
+    const antwort = await fetch(SCRIPT_URL);
+    stand = await antwort.json();
+    zeigeStand();
+  } catch (err) {
+    el.sucher.classList.remove('laedt');
+    el.zahl.textContent = '!';
+    el.zahlText.textContent = 'Plätze konnten nicht geladen werden';
+    zeigeFehler('Verbindung zum Server fehlgeschlagen. Lade die Seite neu.');
+  }
+}
+
+function zeigeStand() {
+  el.sucher.classList.remove('laedt');
+  el.titel.textContent = stand.kurs;
+
+  if (stand.frei > 0) {
+    el.sucher.classList.remove('ausgebucht');
+    el.zahl.textContent = stand.frei;
+    el.zahlText.textContent = stand.frei === 1
+      ? `von ${stand.plaetze} Plätzen frei`
+      : `von ${stand.plaetze} Plätzen frei`;
+    el.hinweisWL.hidden = true;
+    el.senden.textContent = 'Anmelden';
+    el.senden.disabled = false;
+
+  } else if (stand.wartelisteErlaubt) {
+    el.sucher.classList.add('ausgebucht');
+    el.zahl.textContent = 'Ausgebucht';
+    el.zahlText.textContent = stand.warteliste > 0
+      ? `${stand.warteliste} auf der Warteliste`
+      : 'Warteliste offen';
+    el.hinweisWL.hidden = false;
+    el.senden.textContent = 'Auf die Warteliste';
+    el.senden.disabled = false;
+
+  } else {
+    el.sucher.classList.add('ausgebucht');
+    el.zahl.textContent = 'Ausgebucht';
+    el.zahlText.textContent = 'Keine Anmeldung mehr möglich';
+    el.formular.hidden = true;
+  }
+}
+
+// ---------- Absenden ----------
+el.senden.addEventListener('click', absenden);
+el.email.addEventListener('keydown', e => { if (e.key === 'Enter') absenden(); });
+el.name.addEventListener('keydown',  e => { if (e.key === 'Enter') el.email.focus(); });
+
+async function absenden() {
+  const name  = el.name.value.trim();
+  const email = el.email.value.trim();
+
+  versteckeFehler();
+
+  if (!name)  { zeigeFehler('Bitte gib deinen Namen an.'); el.name.focus(); return; }
+  if (!email) { zeigeFehler('Bitte gib deine E-Mail-Adresse an.'); el.email.focus(); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    zeigeFehler('Diese E-Mail-Adresse sieht nicht gültig aus.');
+    el.email.focus();
+    return;
+  }
+
+  el.senden.disabled = true;
+  el.senden.textContent = 'Wird gesendet …';
+
+  try {
+    // text/plain vermeidet den CORS-Preflight, den Apps Script nicht beantwortet
+    const antwort = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ name, email })
+    });
+    const ergebnis = await antwort.json();
+
+    if (ergebnis.ok) {
+      zeigeBestaetigung(ergebnis, name);
+    } else {
+      zeigeFehler(ergebnis.fehler || 'Die Anmeldung hat nicht geklappt.');
+      el.senden.disabled = false;
+      el.senden.textContent = stand.frei > 0 ? 'Anmelden' : 'Auf die Warteliste';
+    }
+
+  } catch (err) {
+    zeigeFehler('Verbindung fehlgeschlagen. Bitte nochmals versuchen.');
+    el.senden.disabled = false;
+    el.senden.textContent = stand.frei > 0 ? 'Anmelden' : 'Auf die Warteliste';
+  }
+}
+
+function zeigeBestaetigung(ergebnis, name) {
+  el.formular.hidden = true;
+
+  if (ergebnis.status === 'Angemeldet') {
+    el.bestaetigung.innerHTML =
+      `<h2>Angemeldet</h2>
+       <p>${entschaerfe(name)}, dein Platz in der Kameraeinführung ist reserviert.</p>
+       <p>Du bekommst die Details zu Termin und Treffpunkt per E-Mail.</p>`;
+    el.zahl.textContent = ergebnis.frei;
+    el.zahlText.textContent = `von ${stand.plaetze} Plätzen frei`;
+
+  } else {
+    el.bestaetigung.innerHTML =
+      `<h2>Auf der Warteliste</h2>
+       <p>${entschaerfe(name)}, du stehst an Position ${ergebnis.wartelistePosition} der Warteliste.</p>
+       <p>Wird ein Platz frei, melden wir uns per E-Mail bei dir.</p>`;
+    el.zahlText.textContent = `${ergebnis.warteliste} auf der Warteliste`;
+  }
+
+  el.bestaetigung.hidden = false;
+}
+
+function zeigeFehler(text) {
+  el.fehler.textContent = text;
+  el.fehler.hidden = false;
+}
+function versteckeFehler() {
+  el.fehler.hidden = true;
+}
+
+/** Verhindert, dass eingegebener Text als HTML interpretiert wird. */
+function entschaerfe(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+ladeStand();
+</script>
+
+<script>
+/* Meldet GitBook laufend die tatsächliche Höhe des Formulars,
+   damit der Block im Wiki nicht abgeschnitten wird. */
+function meldeGroesse() {
+  const box = document.querySelector('.anmeldung');
+  if (!box) return;
+  const hoehe = box.getBoundingClientRect().height;
+  const breite = box.getBoundingClientRect().width || window.innerWidth;
+  window.parent.postMessage({
+    action: '@webframe.resize',
+    aspectRatio: breite / hoehe
+  }, '*');
+}
+
+window.addEventListener('load', () => {
+  window.parent.postMessage({ action: '@webframe.ready' }, '*');
+  meldeGroesse();
+});
+
+/* Wenn sich der Inhalt ändert (Bestätigung, Fehlermeldung),
+   neue Höhe melden. */
+if (window.ResizeObserver) {
+  new ResizeObserver(meldeGroesse).observe(document.documentElement);
+}
+</script>
+</body>
+</html>
